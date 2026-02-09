@@ -192,35 +192,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v6
 
-    - name: Read Prime artifacts secrets
-      uses: rancher-eio/read-vault-secrets@main
-      with:
-        secrets: |
-          secret/data/github/repo/${{ github.repository }}/prime-artifacts-uploader/credentials accessKeyId | AWS_ACCESS_KEY_ID ;
-          secret/data/github/repo/${{ github.repository }}/prime-artifacts-uploader/credentials secretAccessKey | AWS_SECRET_ACCESS_KEY ;
-          secret/data/github/repo/${{ github.repository }}/prime-artifacts-uploader/credentials primeArtifactsBucketName | PRIME_ARTIFACTS_BUCKET_NAME
-
-    - name: Read registry secrets (staging)
-      uses: rancher-eio/read-vault-secrets@main
-      if: ${{ github.repository_owner == 'k3s-io' }}
-      with:
-        secrets: |
-          secret/data/github/repo/${{ github.repository }}/k3s-suse-registry-stg/credentials registry | REGISTRY
-
-    - name: Read registry secrets (prime)
-      uses: rancher-eio/read-vault-secrets@main
-      if: ${{ !contains(github.ref_name, '-rc') && github.repository_owner == 'k3s-io' }}
-      with:
-        secrets: |
-          secret/data/github/repo/${{ github.repository }}/k3s-suse-registry/credentials registry | REGISTRY
-
-    - name: Configure AWS Credentials (s3)
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
-
     - name: "Download Artifacts"
       uses: actions/download-artifact@v7
       with:
@@ -260,13 +231,11 @@ jobs:
     - name: Update Image Registry for Prime/Staging
       env:
         REGISTRY: ${{ env.REGISTRY }}
-      run: sed -i "s|docker.io|${REGISTRY}|g" dist/artifacts/k3s-images.txt
+      run: | 
+        sed -i "s|docker.io|${REGISTRY}|g" dist/artifacts/k3s-images.txt
 
-    - name: Upload Assets to S3
-      env:
-        S3_PATH: s3://${{ env.PRIME_ARTIFACTS_BUCKET_NAME }}/k3s/${{ github.event.release.tag_name }}
-      run: |
-        aws s3 sync dist/artifacts/ "$S3_PATH" --quiet --no-progress --exclude "*" --include "k3s*" --include "sha256sum*"
+        cat dist/artifacts/k3s-images.txt
+
 
   dispatch-k3s-upgrade:
     name: Dispatch k3s-upgrade Workflow
