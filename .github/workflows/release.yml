@@ -254,6 +254,7 @@ jobs:
     - name: Upload Assets to Release
       uses: softprops/action-gh-release@v2.5.0
       with:
+        draft: true
         files: |
           dist/artifacts/k3s*
           dist/artifacts/sha256sum*
