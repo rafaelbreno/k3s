@@ -251,15 +251,11 @@ jobs:
       run: |
         ./scripts/validate-artifacts
     
-    - name: Upload Assets to Release
-      uses: softprops/action-gh-release@v2.5.0
-      with:
-        draft: true
-        files: |
-          dist/artifacts/k3s*
-          dist/artifacts/sha256sum*
+    - name: Create Draft Release with Assets
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release create -R "${GITHUB_REPOSITORY}" --draft --generate-notes "${GITHUB_REF_NAME}" "${GITHUB_WORKSPACE}"/dist/artifacts/k3s* "${GITHUB_WORKSPACE}"/dist/artifacts/sha256sum*
+ 
 
     - name: Update Image Registry for Prime/Staging
       if: ${{ github.repository_owner == 'k3s-io' }}
