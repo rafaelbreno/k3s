@@ -63,5 +63,6 @@ jobs:
         BUCKET: "my-bucket"
       run: |
         S3_PATH="s3://${BUCKET}/k3s/${GITHUB_REF_NAME}"
+        echo "Uploading release assets to ${S3_PATH}"
         aws s3 sync dist/artifacts/ "$S3_PATH" --quiet --no-progress --exclude "*" --include "k3s*" --include "sha256sum*"
 
